@@ -8,10 +8,11 @@ class CartItemModel {
   CartItemModel({
     required this.product,
     required this.quantity,
-    this.note
+    this.note,
   });
 
-  double get subtotal => product.price * quantity;
+  int get subtotalIdr => product.sellingPriceIdr * quantity;
+  double get subtotal => subtotalIdr.toDouble();
 
   CartItemModel copyWith({
     ProductModel? product,
@@ -19,18 +20,18 @@ class CartItemModel {
     String? note,
   }) {
     return CartItemModel(
-      product: product ?? this.product, 
-      quantity: quantity ?? this.quantity, 
-      note: note ?? this.note
+      product: product ?? this.product,
+      quantity: quantity ?? this.quantity,
+      note: note ?? this.note,
     );
   }
 
-  Map<String, dynamic> toTransactionPayload() {
+  /// Payload item sesuai kontrak backend `POST /pos/sales` (`posSaleSchema`)
+  Map<String, dynamic> toPosSaleItemPayload() {
     return {
       'productId': product.id,
-      'quantity': quantity,
-      'price': product.price,
-      if (note != null && note!.isNotEmpty) 'note': note,
+      'qty': quantity,
+      'unitPriceIdr': product.sellingPriceIdr,
     };
   }
 }

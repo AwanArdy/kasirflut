@@ -5,41 +5,61 @@ import '../../data/models/product_model.dart';
 class CartState {
   final List<CartItemModel> items;
   final String customerName;
-  final String tableName;
+  final String orderType; // 'dine_in' | 'takeaway' | 'delivery'
   final String? promoCode;
   final double discountRate;
+  final bool includeTax;
 
   CartState({
     required this.items,
     this.customerName = 'Walk-in Customer',
-    this.tableName = 'Table 01',
+    this.orderType = 'dine_in',
     this.promoCode,
-    this.discountRate = 0.0
+    this.discountRate = 0.0,
+    this.includeTax = true,
   });
 
   int get totalItemCount => items.fold(0, (sum, item) => sum + item.quantity);
 
-  double get subTotal => items.fold(0, (sum, item) => sum + item.subtotal);
+  int get subTotalIdr => items.fold(0, (sum, item) => sum + item.subtotalIdr);
+  double get subTotal => subTotalIdr.toDouble();
 
-  double get discountAmount => subTotal * discountRate;
+  int get discountAmountIdr => (subTotalIdr * discountRate).round();
+  double get discountAmount => discountAmountIdr.toDouble();
 
-  double get taxAmount => (subTotal - discountAmount) * 0.10;
+  int get taxAmountIdr =>
+      includeTax ? ((subTotalIdr - discountAmountIdr) * 0.10).round() : 0;
+  double get taxAmount => taxAmountIdr.toDouble();
 
-  double get grandTotal => (subTotal - discountAmount) + taxAmount;
+  int get grandTotalIdr => (subTotalIdr - discountAmountIdr) + taxAmountIdr;
+  double get grandTotal => grandTotalIdr.toDouble();
+
+  String get orderTypeLabel {
+    switch (orderType) {
+      case 'takeaway':
+        return 'Takeaway';
+      case 'delivery':
+        return 'Delivery';
+      default:
+        return 'Dine In';
+    }
+  }
 
   CartState copyWith({
     List<CartItemModel>? items,
     String? customerName,
-    String? tableName,
+    String? orderType,
     String? promoCode,
     double? discountRate,
+    bool? includeTax,
   }) {
     return CartState(
       items: items ?? this.items,
       customerName: customerName ?? this.customerName,
-      tableName: tableName ?? this.tableName,
+      orderType: orderType ?? this.orderType,
       promoCode: promoCode ?? this.promoCode,
-      discountRate: discountRate ?? this.discountRate
+      discountRate: discountRate ?? this.discountRate,
+      includeTax: includeTax ?? this.includeTax,
     );
   }
 }
@@ -49,30 +69,29 @@ class CartCubit extends Cubit<CartState> {
 
   void addToCart(ProductModel product) {
     final currentItems = List<CartItemModel>.from(state.items);
-    final index = currentItems.indexWhere((item) => item.product.id == product.id);
+    final index =
+        currentItems.indexWhere((item) => item.product.id == product.id);
 
     if (index >= 0) {
       final existingItem = currentItems[index];
-
-      if (existingItem.quantity < product.stock) {
-        currentItems[index] = existingItem.copyWith(quantity: existingItem.quantity + 1);
-      }
+      currentItems[index] =
+          existingItem.copyWith(quantity: existingItem.quantity + 1);
     } else {
-      if (product.stock > 0) {
-        currentItems.add(CartItemModel(product: product, quantity: 1));
-      }
+      currentItems.add(CartItemModel(product: product, quantity: 1));
     }
     emit(state.copyWith(items: currentItems));
   }
 
   void removeFromCart(String productId) {
     final currentItems = List<CartItemModel>.from(state.items);
-    final index = currentItems.indexWhere((item) => item.product.id == productId);
+    final index =
+        currentItems.indexWhere((item) => item.product.id == productId);
 
     if (index >= 0) {
       final existingItem = currentItems[index];
       if (existingItem.quantity > 1) {
-        currentItems[index] = existingItem.copyWith(quantity: existingItem.quantity - 1);
+        currentItems[index] =
+            existingItem.copyWith(quantity: existingItem.quantity - 1);
       } else {
         currentItems.removeAt(index);
       }
@@ -80,8 +99,15 @@ class CartCubit extends Cubit<CartState> {
     emit(state.copyWith(items: currentItems));
   }
 
-  void updateCustomerInfo(String name, String table) {
-    emit(state.copyWith(customerName: name, tableName: table));
+  void updateOrderInfo({String? customerName, String? orderType}) {
+    emit(state.copyWith(
+      customerName: customerName,
+      orderType: orderType,
+    ));
+  }
+
+  void toggleTax(bool includeTax) {
+    emit(state.copyWith(includeTax: includeTax));
   }
 
   bool applyPromoCode(String code) {
@@ -90,6 +116,15 @@ class CartCubit extends Cubit<CartState> {
       return true;
     }
     return false;
+  }
+
+  void clearPromoCode() {
+    emit(CartState(
+      items: state.items,
+      customerName: state.customerName,
+      orderType: state.orderType,
+      includeTax: state.includeTax,
+    ));
   }
 
   void clearCart() {

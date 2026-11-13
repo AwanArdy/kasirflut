@@ -19,7 +19,21 @@ class MenuGridWidget extends StatelessWidget {
 
         if (state is CatalogError) {
           return Center(
-            child: Text(state.message, style: AppTypography.bodyLg.copyWith(color: AppColors.error)),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(state.message,
+                    style:
+                        AppTypography.bodyLg.copyWith(color: AppColors.error)),
+                const SizedBox(height: 12),
+                ElevatedButton.icon(
+                  onPressed: () =>
+                      context.read<CatalogCubit>().fetchCatalog(),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Coba Lagi'),
+                ),
+              ],
+            ),
           );
         }
 
@@ -61,6 +75,31 @@ class MenuGridWidget extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
+
+                if (state.isOfflineCache)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.warningBg,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.wifi_off,
+                            size: 16, color: AppColors.warningText),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Mode Offline: Menampilkan menu dari cache SQLite lokal.',
+                            style: AppTypography.labelSm
+                                .copyWith(color: AppColors.warningText),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
 
                 // Horizontal Category Pills
                 SizedBox(

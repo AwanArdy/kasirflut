@@ -46,6 +46,8 @@ class ApiException implements Exception {
         }
   }
 
+  bool get isNetworkError => code == 'NETWORK_ERROR';
+
   @override
   String toString() => message;
 }

@@ -21,6 +21,9 @@ class ProductCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isSnack = product.category.toLowerCase().contains('pastry') ||
+        product.category.toLowerCase().contains('snack');
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -30,50 +33,35 @@ class ProductCardWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Gambar Produk (Aspect Ratio 1:1)
-          Stack(
-            children: [
-              AspectRatio(
-                aspectRatio: 1.0,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),
-                  child: product.imageUrl != null
-                      ? CachedNetworkImage(
-                          imageUrl: product.imageUrl!,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(color: AppColors.surfaceDim),
-                          errorWidget: (context, url, error) => const Icon(Icons.fastfood, size: 40, color: AppColors.outline),
-                        )
-                      : Container(
-                          color: AppColors.surfaceContainerLow,
-                          child: const Icon(Icons.fastfood, size: 40, color: AppColors.outline),
+          AspectRatio(
+            aspectRatio: 1.25,
+            child: ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(11)),
+              child: product.imageUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: product.imageUrl!,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                          Container(color: AppColors.surfaceDim),
+                      errorWidget: (context, url, error) => Icon(
+                        isSnack ? Icons.bakery_dining : Icons.local_cafe,
+                        size: 40,
+                        color: AppColors.outline,
+                      ),
+                    )
+                  : Container(
+                      color: AppColors.surfaceContainerLow,
+                      child: Center(
+                        child: Icon(
+                          isSnack ? Icons.bakery_dining : Icons.local_cafe,
+                          size: 42,
+                          color: AppColors.primary,
                         ),
-                ),
-              ),
-              // Low Stock Warning Badge
-              if (product.isLowStock)
-                Positioned(
-                  top: 8,
-                  left: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.warningBg,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      'Stok ${product.stock}',
-                      style: AppTypography.labelSm.copyWith(
-                        color: AppColors.warningText,
-                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ),
-            ],
+            ),
           ),
-
-          // Detail Teks Produk
           Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -83,30 +71,31 @@ class ProductCardWidget extends StatelessWidget {
                   product.name,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTypography.bodyMd.copyWith(fontWeight: FontWeight.bold),
+                  style: AppTypography.bodyMd
+                      .copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 2),
                 Text(product.categoryName, style: AppTypography.bodySm),
                 const SizedBox(height: 8),
                 Text(
                   formatRupiah(product.price),
-                  style: AppTypography.headlineSm.copyWith(color: AppColors.onSurface),
+                  style: AppTypography.headlineSm
+                      .copyWith(color: AppColors.onSurface),
                 ),
-                const SizedBox(height: 12),
-
-                // Tombol Aksi Tambah / Pengatur Qty
+                const SizedBox(height: 10),
                 if (cartQty == 0)
                   SizedBox(
                     width: double.infinity,
                     height: 36,
                     child: ElevatedButton.icon(
-                      onPressed: product.stock > 0 ? onAdd : null,
+                      onPressed: onAdd,
                       icon: const Icon(Icons.add, size: 18),
                       label: const Text('Tambah'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.onPrimary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(6)),
                         elevation: 0,
                       ),
                     ),
@@ -120,20 +109,23 @@ class ProductCardWidget extends StatelessWidget {
                         icon: const Icon(Icons.remove, size: 18),
                         style: IconButton.styleFrom(
                           backgroundColor: AppColors.surfaceContainer,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6)),
                         ),
                       ),
                       Text(
                         '$cartQty',
-                        style: AppTypography.bodyMd.copyWith(fontWeight: FontWeight.bold),
+                        style: AppTypography.bodyMd
+                            .copyWith(fontWeight: FontWeight.bold),
                       ),
                       IconButton(
-                        onPressed: cartQty < product.stock ? onAdd : null,
+                        onPressed: onAdd,
                         icon: const Icon(Icons.add, size: 18),
                         style: IconButton.styleFrom(
                           backgroundColor: AppColors.primary,
                           foregroundColor: AppColors.onPrimary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(6)),
                         ),
                       ),
                     ],
