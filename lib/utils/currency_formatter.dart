@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-String formatRupiah(double amount) {
+String formatRupiah(num amount) {
   final formatter = NumberFormat.currency(
     locale: 'id_ID',
     symbol: 'Rp',
@@ -9,7 +9,7 @@ String formatRupiah(double amount) {
   return formatter.format(amount);
 }
 
-String formatNumber(double amount) {
+String formatNumber(num amount) {
   final formatter = NumberFormat.decimalPattern('id_ID');
   return formatter.format(amount);
 }
