@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/network/api_client.dart';
@@ -24,6 +25,9 @@ class PosRepository {
   final AppDatabase db;
   final SessionStorage sessionStorage;
 
+  // Cache in-memory khusus untuk Web agar fitur Shift & Checkout tetap berjalan
+  ShiftModel? _webActiveShift;
+
   PosRepository({
     required this.apiClient,
     AppDatabase? db,
@@ -45,10 +49,12 @@ class PosRepository {
           .where((p) => p.isActive)
           .toList();
 
-      await db.replaceAllProducts(products);
+      if (!kIsWeb) {
+        await db.replaceAllProducts(products);
+      }
       return CatalogFetchResult(products: products, fromOfflineCache: false);
     } on ApiException catch (e) {
-      if (e.isNetworkError) {
+      if (!kIsWeb && e.isNetworkError) {
         final cached = await db.getProducts();
         if (cached.isNotEmpty) {
           return CatalogFetchResult(products: cached, fromOfflineCache: true);
@@ -56,9 +62,11 @@ class PosRepository {
       }
       rethrow;
     } catch (_) {
-      final cached = await db.getProducts();
-      if (cached.isNotEmpty) {
-        return CatalogFetchResult(products: cached, fromOfflineCache: true);
+      if (!kIsWeb) {
+        final cached = await db.getProducts();
+        if (cached.isNotEmpty) {
+          return CatalogFetchResult(products: cached, fromOfflineCache: true);
+        }
       }
       rethrow;
     }
@@ -71,6 +79,10 @@ class PosRepository {
       final res = await apiClient.get('/pos/active-shift');
       final data = res['data'];
       if (data == null) {
+        if (kIsWeb) {
+          _webActiveShift = null;
+          return null;
+        }
         // Check if there's an unsynced local open shift
         final local = await db.getActiveShift();
         if (local != null && local.syncStatus == 'pending_open') {
@@ -79,15 +91,19 @@ class PosRepository {
         return null;
       }
       final shift = ShiftModel.fromJson(data as Map<String, dynamic>);
-      await db.upsertShift(shift);
+      if (kIsWeb) {
+        _webActiveShift = shift;
+      } else {
+        await db.upsertShift(shift);
+      }
       return shift;
     } on ApiException catch (e) {
       if (e.isNetworkError) {
-        return await db.getActiveShift();
+        return kIsWeb ? _webActiveShift : await db.getActiveShift();
       }
       rethrow;
     } catch (_) {
-      return await db.getActiveShift();
+      return kIsWeb ? _webActiveShift : await db.getActiveShift();
     }
   }
 
@@ -106,10 +122,14 @@ class PosRepository {
         },
       );
       final shift = ShiftModel.fromJson(res['data'] as Map<String, dynamic>);
-      await db.upsertShift(shift);
+      if (kIsWeb) {
+        _webActiveShift = shift;
+      } else {
+        await db.upsertShift(shift);
+      }
       return shift;
     } on ApiException catch (e) {
-      if (!e.isNetworkError) rethrow;
+      if (kIsWeb || !e.isNetworkError) rethrow;
 
       final existing = await db.getActiveShift();
       if (existing != null) {
@@ -142,7 +162,7 @@ class PosRepository {
     required int actualPhysicalCashIdr,
     String? notes,
   }) async {
-    final active = await db.getActiveShift();
+    final active = kIsWeb ? _webActiveShift : await db.getActiveShift();
     if (active == null) {
       throw ApiException(
         message: 'Tidak ada shift aktif yang perlu ditutup',
@@ -162,14 +182,18 @@ class PosRepository {
         );
         final closed =
             ShiftModel.fromJson(res['data'] as Map<String, dynamic>);
-        await db.upsertShift(closed);
+        if (kIsWeb) {
+          _webActiveShift = null;
+        } else {
+          await db.upsertShift(closed);
+        }
         return closed;
       }
     } on ApiException catch (e) {
-      if (!e.isNetworkError) rethrow;
+      if (kIsWeb || !e.isNetworkError) rethrow;
     }
 
-    // Offline close
+    // Offline close (hanya untuk mobile/desktop)
     final expectedCash = active.expectedCashIdr;
     final difference = actualPhysicalCashIdr - expectedCash;
     final status = difference == 0 ? 'balanced' : 'variance';
@@ -202,7 +226,7 @@ class PosRepository {
     final idempotencyKey = const Uuid().v4();
     final localId = const Uuid().v4();
     final now = DateTime.now();
-    final activeShift = await db.getActiveShift();
+    final activeShift = kIsWeb ? _webActiveShift : await db.getActiveShift();
 
     final subtotalIdr =
         items.fold<int>(0, (sum, item) => sum + item.subtotalIdr);
@@ -244,19 +268,21 @@ class PosRepository {
       syncStatus: 'pending',
     );
 
-    // 1. Simpan ke SQLite terlebih dahulu (offline-first guarantee)
-    await db.insertOrUpdateTransaction(localTx);
+    if (!kIsWeb) {
+      // 1. Simpan ke SQLite terlebih dahulu (offline-first guarantee)
+      await db.insertOrUpdateTransaction(localTx);
 
-    // 2. Update akumulasi kas shift di SQLite
-    if (activeShift != null) {
-      await db.incrementShiftSales(
-        shiftId: activeShift.id,
-        paymentMethod: paymentMethod,
-        totalIdr: totalIdr,
-      );
+      // 2. Update akumulasi kas shift di SQLite
+      if (activeShift != null) {
+        await db.incrementShiftSales(
+          shiftId: activeShift.id,
+          paymentMethod: paymentMethod,
+          totalIdr: totalIdr,
+        );
+      }
     }
 
-    // 3. Coba kirim ke backend PostgreSQL
+    // 3. Kirim ke backend PostgreSQL
     try {
       final res = await apiClient.post(
         '/pos/sales',
@@ -272,19 +298,23 @@ class PosRepository {
         amountReceivedIdr: localTx.amountReceivedIdr,
         changeIdr: localTx.changeIdr,
       );
-      await db.markTransactionSynced(
-        localId: localId,
-        serverId: syncedTx.serverId!,
-        noNota: syncedTx.noNota,
-      );
+      if (!kIsWeb) {
+        await db.markTransactionSynced(
+          localId: localId,
+          serverId: syncedTx.serverId!,
+          noNota: syncedTx.noNota,
+        );
+      }
       return syncedTx;
     } on ApiException catch (e) {
-      if (e.isNetworkError) {
-        // Offline mode: transaksi tetap sukses tersimpan di SQLite
-        return localTx;
+      if (!kIsWeb) {
+        if (e.isNetworkError) {
+          // Offline mode: transaksi tetap sukses tersimpan di SQLite
+          return localTx;
+        }
+        // Server validation error (misal stok habis)
+        await db.markTransactionFailed(localId: localId, error: e.message);
       }
-      // Server validation error (misal stok habis)
-      await db.markTransactionFailed(localId: localId, error: e.message);
       rethrow;
     }
   }

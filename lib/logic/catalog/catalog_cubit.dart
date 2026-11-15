@@ -87,8 +87,10 @@ class CatalogCubit extends Cubit<CatalogState> {
       );
     } on ApiException catch (e) {
       emit(CatalogError(e.message));
-    } catch (_) {
-      emit(CatalogError('Gagal memuat katalog menu'));
+    } catch (e, stackTrace) {
+      print('ERROR FETCH CATALOG: $e');
+      print(stackTrace);
+      emit(CatalogError('Gagal memuat katalog menu: $e'));
     }
   }
 
