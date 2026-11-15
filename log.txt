@@ -1,0 +1,53 @@
+lib/presentation/screens/pos_screen.dart:81:66: Error: The argument type 'num' can't be assigned to the parameter type 'double'.
+                    'Selisih kas: ${formatRupiah(s.differenceIdr ?? 0)}',
+                                                                 ^
+lib/presentation/navigation/top_nav_bar.dart:139:60: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                        'Kas: ${formatRupiah(state.session.expectedCashIdr)}',
+                                                           ^
+lib/presentation/widgets/payment_modal.dart:98:54: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                            formatRupiah(currentCart.grandTotalIdr),
+                                                     ^
+lib/presentation/widgets/payment_modal.dart:169:56: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                              label: Text(formatRupiah(nominal)),
+                                                       ^
+lib/presentation/widgets/payment_modal.dart:205:51: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                              formatRupiah(change.abs()),
+                                                  ^
+lib/presentation/widgets/payment_modal.dart:459:45: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                          formatRupiah(item.lineTotalIdr),
+                                            ^
+lib/presentation/widgets/payment_modal.dart:469:57: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                _receiptRow('Subtotal', formatRupiah(tx.subtotalIdr)),
+                                                        ^
+lib/presentation/widgets/payment_modal.dart:471:56: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                  _receiptRow('Pajak', formatRupiah(tx.taxIdr)),
+                                                       ^
+lib/presentation/widgets/payment_modal.dart:473:61: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                  _receiptRow('Diskon', '-${formatRupiah(tx.discountIdr)}'),
+                                                            ^
+lib/presentation/widgets/payment_modal.dart:475:54: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                _receiptRow('Total', formatRupiah(tx.totalIdr), bold: true),
+                                                     ^
+lib/presentation/widgets/payment_modal.dart:478:58: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                  _receiptRow('Dibayar', formatRupiah(tx.amountReceivedIdr)),
+                                                         ^
+lib/presentation/widgets/payment_modal.dart:479:60: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                  _receiptRow('Kembalian', formatRupiah(tx.changeIdr)),
+                                                           ^
+lib/presentation/widgets/offline_queue_modal.dart:231:47: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                              formatRupiah(tx.totalIdr),
+                                              ^
+lib/presentation/widgets/shift_modals.dart:181:56: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                              formatRupiah(activeShift.startingCashIdr)),
+                                                       ^
+lib/presentation/widgets/shift_modals.dart:183:56: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                              formatRupiah(activeShift.cashSalesIdr)),
+                                                       ^
+lib/presentation/widgets/shift_modals.dart:185:56: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                              formatRupiah(activeShift.qrisSalesIdr)),
+                                                       ^
+lib/presentation/widgets/shift_modals.dart:189:54: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                            formatRupiah(activeShift.expectedCashIdr),
+                                                     ^
+lib/presentation/widgets/shift_modals.dart:234:60: Error: The argument type 'int' can't be assigned to the parameter type 'double'.
+                                : 'Selisih: ${formatRupiah(diff)}',
