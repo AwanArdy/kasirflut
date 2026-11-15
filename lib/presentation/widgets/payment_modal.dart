@@ -39,41 +39,74 @@ Future<void> showPaymentModal(BuildContext context) async {
                   received >= currentCart.grandTotalIdr);
 
           return AlertDialog(
-            title: const Text('Proses Pembayaran'),
+            title: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.payments_rounded,
+                    color: AppColors.primaryStrong,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text('Proses Pembayaran'),
+              ],
+            ),
             content: SizedBox(
-              width: 440,
+              width: 460,
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Total Bill Banner
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: AppColors.primaryContainer,
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Total Tagihan',
-                            style: AppTypography.labelMd.copyWith(
-                              color: AppColors.onPrimaryContainer,
-                            ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Total Tagihan',
+                                style: AppTypography.labelSm.copyWith(
+                                  color: AppColors.onPrimaryContainer,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '${currentCart.totalItemCount} Item · ${currentCart.orderTypeLabel}',
+                                style: AppTypography.labelSm.copyWith(
+                                  color: AppColors.onPrimaryContainer
+                                      .withValues(alpha: 0.75),
+                                ),
+                              ),
+                            ],
                           ),
                           Text(
                             formatRupiah(currentCart.grandTotalIdr),
                             style: AppTypography.headlineMd.copyWith(
                               color: AppColors.onPrimaryContainer,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Text('Metode Pembayaran', style: AppTypography.labelMd),
+                    const SizedBox(height: 18),
+
+                    Text('Metode Pembayaran', style: AppTypography.labelSm),
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
@@ -87,38 +120,44 @@ Future<void> showPaymentModal(BuildContext context) async {
                                 currentCart.grandTotalIdr.toString();
                           });
                         }),
-                        _methodChip('qris', 'QRIS', Icons.qr_code_2,
+                        _methodChip('qris', 'QRIS', Icons.qr_code_2_rounded,
                             paymentMethod, (v) {
                           setState(() => paymentMethod = v);
                         }),
-                        _methodChip('debit', 'Debit', Icons.credit_card,
+                        _methodChip('debit', 'Debit', Icons.credit_card_rounded,
                             paymentMethod, (v) {
                           setState(() => paymentMethod = v);
                         }),
                         _methodChip('bank_transfer', 'Transfer',
-                            Icons.account_balance, paymentMethod, (v) {
+                            Icons.account_balance_rounded, paymentMethod, (v) {
                           setState(() => paymentMethod = v);
                         }),
                       ],
                     ),
+
                     if (paymentMethod == 'cash') ...[
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 18),
+                      Text('Uang Diterima (IDR)', style: AppTypography.labelSm),
+                      const SizedBox(height: 6),
                       TextField(
                         controller: receivedController,
                         keyboardType: TextInputType.number,
                         onChanged: (_) => setState(() {}),
                         decoration: const InputDecoration(
-                          labelText: 'Uang Diterima (IDR)',
-                          border: OutlineInputBorder(),
                           prefixText: 'Rp ',
+                          hintText: '0',
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Wrap(
                         spacing: 8,
+                        runSpacing: 6,
                         children: [
                           ActionChip(
                             label: const Text('Uang Pas'),
+                            backgroundColor: AppColors.surfaceContainerLow,
+                            side: const BorderSide(
+                                color: AppColors.outlineVariant),
                             onPressed: () {
                               receivedController.text =
                                   currentCart.grandTotalIdr.toString();
@@ -128,6 +167,9 @@ Future<void> showPaymentModal(BuildContext context) async {
                           for (final nominal in [20000, 50000, 100000])
                             ActionChip(
                               label: Text(formatRupiah(nominal)),
+                              backgroundColor: AppColors.surfaceContainerLow,
+                              side: const BorderSide(
+                                  color: AppColors.outlineVariant),
                               onPressed: () {
                                 receivedController.text = nominal.toString();
                                 setState(() {});
@@ -135,53 +177,84 @@ Future<void> showPaymentModal(BuildContext context) async {
                             ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Kembalian:', style: AppTypography.bodyMd),
-                          Text(
-                            change >= 0
-                                ? formatRupiah(change)
-                                : 'Kurang ${formatRupiah(change.abs())}',
-                            style: AppTypography.headlineSm.copyWith(
-                              color: change >= 0
-                                  ? AppColors.primaryStrong
-                                  : AppColors.errorStrong,
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: change >= 0
+                              ? AppColors.successBg
+                              : AppColors.dangerBg,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              change >= 0 ? 'Kembalian' : 'Kurang Bayar',
+                              style: AppTypography.labelMd.copyWith(
+                                color: change >= 0
+                                    ? AppColors.primaryStrong
+                                    : AppColors.errorStrong,
+                                letterSpacing: 0.1,
+                              ),
                             ),
-                          ),
-                        ],
+                            Text(
+                              formatRupiah(change.abs()),
+                              style: AppTypography.headlineSm.copyWith(
+                                color: change >= 0
+                                    ? AppColors.primaryStrong
+                                    : AppColors.errorStrong,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
-                    const SizedBox(height: 16),
+
+                    const SizedBox(height: 18),
+                    Text('Kode Promo (opsional)', style: AppTypography.labelSm),
+                    const SizedBox(height: 6),
                     Row(
                       children: [
                         Expanded(
                           child: TextField(
                             controller: promoController,
                             decoration: const InputDecoration(
-                              labelText: 'Kode Promo (opsional)',
                               hintText: 'TERATUR10',
-                              border: OutlineInputBorder(),
                               isDense: true,
+                              prefixIcon: Icon(Icons.local_offer_outlined),
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        OutlinedButton(
-                          onPressed: () {
-                            final ok = context
-                                .read<CartCubit>()
-                                .applyPromoCode(promoController.text);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(ok
-                                    ? 'Promo TERATUR10 (10%) diterapkan'
-                                    : 'Kode promo tidak valid'),
+                        SizedBox(
+                          height: 46,
+                          child: OutlinedButton(
+                            onPressed: () {
+                              final ok = context
+                                  .read<CartCubit>()
+                                  .applyPromoCode(promoController.text);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(ok
+                                      ? 'Promo TERATUR10 (10%) diterapkan'
+                                      : 'Kode promo tidak valid'),
+                                ),
+                              );
+                            },
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.primaryStrong,
+                              side: const BorderSide(color: AppColors.primary),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
                               ),
-                            );
-                          },
-                          child: const Text('Pakai'),
+                            ),
+                            child: const Text('Pakai'),
+                          ),
                         ),
                       ],
                     ),
@@ -214,6 +287,12 @@ Future<void> showPaymentModal(BuildContext context) async {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: AppColors.onPrimary,
+                  elevation: 0,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 child: isProcessing
                     ? const SizedBox(
@@ -242,17 +321,45 @@ Widget _methodChip(
   ValueChanged<String> onSelect,
 ) {
   final selected = value == current;
-  return ChoiceChip(
-    selected: selected,
-    label: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 16),
-        const SizedBox(width: 6),
-        Text(label),
-      ],
+  return InkWell(
+    onTap: () => onSelect(value),
+    borderRadius: BorderRadius.circular(12),
+    child: AnimatedContainer(
+      duration: const Duration(milliseconds: 150),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: selected
+            ? AppColors.primaryContainer
+            : AppColors.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: selected ? AppColors.primary : AppColors.outlineVariant,
+          width: selected ? 1.5 : 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: selected
+                ? AppColors.primaryStrong
+                : AppColors.onSurfaceVariant,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: AppTypography.labelSm.copyWith(
+              color: selected
+                  ? AppColors.onPrimaryContainer
+                  : AppColors.onSurface,
+              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
     ),
-    onSelected: (_) => onSelect(value),
   );
 }
 
@@ -264,12 +371,24 @@ Future<void> showReceiptModal(
       return AlertDialog(
         title: Row(
           children: [
-            const Icon(Icons.receipt_long, color: AppColors.primary),
-            const SizedBox(width: 8),
+            Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: AppColors.primaryContainer,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.receipt_long_rounded,
+                color: AppColors.primaryStrong,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 10),
             const Text('Struk Transaksi'),
             const Spacer(),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: tx.isOfflinePending
                     ? AppColors.warningBg
@@ -282,55 +401,80 @@ Future<void> showReceiptModal(
                   color: tx.isOfflinePending
                       ? AppColors.warningText
                       : AppColors.onPrimaryContainer,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
             ),
           ],
         ),
         content: SizedBox(
-          width: 380,
+          width: 390,
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(tx.noNota, style: AppTypography.headlineSm),
-                Text(
-                  DateFormat('dd MMM yyyy, HH:mm').format(tx.soldAt.toLocal()),
-                  style: AppTypography.bodySm,
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.outlineVariant),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tx.noNota, style: AppTypography.headlineSm),
+                      const SizedBox(height: 4),
+                      Text(
+                        DateFormat('dd MMM yyyy, HH:mm')
+                            .format(tx.soldAt.toLocal()),
+                        style: AppTypography.bodySm,
+                      ),
+                      if (tx.customerName != null &&
+                          tx.customerName!.isNotEmpty) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          'Pelanggan: ${tx.customerName}',
+                          style: AppTypography.bodySm,
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-                if (tx.customerName != null && tx.customerName!.isNotEmpty)
-                  Text('Pelanggan: ${tx.customerName}',
-                      style: AppTypography.bodySm),
-                const Divider(height: 20),
+                const SizedBox(height: 14),
                 for (final item in tx.items)
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    padding: const EdgeInsets.symmetric(vertical: 4),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Expanded(
                           child: Text(
                             '${item.qty}x ${item.name}',
-                            style: AppTypography.bodyMd,
+                            style: AppTypography.bodyMd.copyWith(fontSize: 14),
                           ),
                         ),
                         Text(
                           formatRupiah(item.lineTotalIdr),
-                          style: AppTypography.bodyMd,
+                          style: AppTypography.bodyMd.copyWith(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ],
                     ),
                   ),
-                const Divider(height: 20),
+                const Divider(height: 22),
                 _receiptRow('Subtotal', formatRupiah(tx.subtotalIdr)),
                 if (tx.taxIdr > 0)
                   _receiptRow('Pajak', formatRupiah(tx.taxIdr)),
                 if (tx.discountIdr > 0)
                   _receiptRow('Diskon', '-${formatRupiah(tx.discountIdr)}'),
+                const SizedBox(height: 6),
                 _receiptRow('Total', formatRupiah(tx.totalIdr), bold: true),
                 if (tx.paymentMethod == 'cash') ...[
+                  const SizedBox(height: 4),
                   _receiptRow('Dibayar', formatRupiah(tx.amountReceivedIdr)),
                   _receiptRow('Kembalian', formatRupiah(tx.changeIdr)),
                 ],
@@ -339,13 +483,21 @@ Future<void> showReceiptModal(
           ),
         ),
         actions: [
-          ElevatedButton(
-            onPressed: () => Navigator.pop(dialogCtx),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.onPrimary,
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.onPrimary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text('Selesai'),
             ),
-            child: const Text('Selesai'),
           ),
         ],
       );
@@ -355,14 +507,24 @@ Future<void> showReceiptModal(
 
 Widget _receiptRow(String label, String value, {bool bold = false}) {
   return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 2),
+    padding: const EdgeInsets.symmetric(vertical: 3),
     child: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: bold ? AppTypography.labelMd : AppTypography.bodySm),
+        Text(
+          label,
+          style: bold
+              ? AppTypography.labelMd.copyWith(letterSpacing: 0)
+              : AppTypography.bodySm,
+        ),
         Text(
           value,
-          style: bold ? AppTypography.headlineSm : AppTypography.bodyMd,
+          style: bold
+              ? AppTypography.headlineSm.copyWith(
+                  color: AppColors.primaryStrong,
+                  fontWeight: FontWeight.w800,
+                )
+              : AppTypography.bodyMd.copyWith(fontSize: 14),
         ),
       ],
     ),

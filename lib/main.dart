@@ -70,7 +70,47 @@ class KasirFlutApp extends StatelessWidget {
             scaffoldBackgroundColor: AppColors.background,
             colorScheme: ColorScheme.fromSeed(
               seedColor: AppColors.primary,
+              primary: AppColors.primary,
+              onPrimary: AppColors.onPrimary,
+              secondary: AppColors.secondary,
               surface: AppColors.surface,
+              error: AppColors.error,
+            ),
+            dividerTheme: const DividerThemeData(
+              color: AppColors.outlineVariant,
+              thickness: 1,
+            ),
+            dialogTheme: DialogThemeData(
+              backgroundColor: AppColors.surface,
+              surfaceTintColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            inputDecorationTheme: InputDecorationTheme(
+              filled: true,
+              fillColor: AppColors.surfaceContainerLow,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.outlineVariant),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: AppColors.outlineVariant),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide:
+                    const BorderSide(color: AppColors.primary, width: 1.5),
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            ),
+            snackBarTheme: SnackBarThemeData(
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
           home: BlocBuilder<AuthCubit, AuthState>(

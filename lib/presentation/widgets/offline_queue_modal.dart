@@ -72,10 +72,23 @@ class _OfflineQueueDialogState extends State<_OfflineQueueDialog> {
     return AlertDialog(
       title: Row(
         children: [
-          const Icon(Icons.storage_rounded, color: AppColors.primary),
-          const SizedBox(width: 8),
-          const Text('Riwayat Lokal (SQLite)'),
-          const Spacer(),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.primaryContainer,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.storage_rounded,
+              color: AppColors.primaryStrong,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Text('Riwayat Lokal (SQLite)'),
+          ),
           ElevatedButton.icon(
             onPressed: _syncing ? null : _syncNow,
             icon: _syncing
@@ -87,25 +100,56 @@ class _OfflineQueueDialogState extends State<_OfflineQueueDialog> {
                       color: Colors.white,
                     ),
                   )
-                : const Icon(Icons.sync, size: 18),
+                : const Icon(Icons.sync_rounded, size: 18),
             label: Text(_syncing ? 'Sync...' : 'Sync Sekarang'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.onPrimary,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
         ],
       ),
       content: SizedBox(
-        width: 520,
-        height: 400,
+        width: 540,
+        height: 420,
         child: _loading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(
+                child: CircularProgressIndicator(color: AppColors.primary),
+              )
             : _transactions.isEmpty
-                ? const Center(child: Text('Belum ada transaksi di perangkat ini.'))
+                ? Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: const BoxDecoration(
+                            color: AppColors.surfaceContainerLow,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.receipt_long_outlined,
+                            size: 30,
+                            color: AppColors.outline,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Belum ada transaksi di perangkat ini.',
+                          style: AppTypography.bodyMd
+                              .copyWith(color: AppColors.onSurfaceVariant),
+                        ),
+                      ],
+                    ),
+                  )
                 : ListView.separated(
                     itemCount: _transactions.length,
-                    separatorBuilder: (_, __) => const Divider(),
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
                     itemBuilder: (_, index) {
                       final tx = _transactions[index];
                       Color badgeBg = AppColors.primaryContainer;
@@ -117,50 +161,81 @@ class _OfflineQueueDialogState extends State<_OfflineQueueDialog> {
                         badgeFg = AppColors.warningText;
                         badgeText = 'Pending Offline';
                       } else if (tx.syncStatus == 'failed') {
-                        badgeBg = AppColors.error.withValues(alpha: 0.12);
+                        badgeBg = AppColors.dangerBg;
                         badgeFg = AppColors.errorStrong;
                         badgeText = 'Gagal Sync';
                       }
 
-                      return ListTile(
-                        dense: true,
-                        title: Row(
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerLow,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AppColors.outlineVariant
+                                .withValues(alpha: 0.7),
+                          ),
+                        ),
+                        child: Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                tx.noNota,
-                                style: AppTypography.labelMd.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Text(
+                                        tx.noNota,
+                                        style: AppTypography.labelMd.copyWith(
+                                          letterSpacing: 0,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: badgeBg,
+                                          borderRadius:
+                                              BorderRadius.circular(999),
+                                        ),
+                                        child: Text(
+                                          badgeText,
+                                          style: AppTypography.labelSm.copyWith(
+                                            fontSize: 11,
+                                            color: badgeFg,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${DateFormat('dd/MM HH:mm').format(tx.soldAt.toLocal())} · '
+                                    '${tx.paymentMethod.toUpperCase()} · '
+                                    '${tx.items.length} item'
+                                    '${tx.syncError != null ? '\nError: ${tx.syncError}' : ''}',
+                                    style: AppTypography.bodySm.copyWith(
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: badgeBg,
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Text(
-                                badgeText,
-                                style: AppTypography.labelSm
-                                    .copyWith(color: badgeFg),
+                            const SizedBox(width: 12),
+                            Text(
+                              formatRupiah(tx.totalIdr),
+                              style: AppTypography.labelMd.copyWith(
+                                letterSpacing: 0,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primaryStrong,
                               ),
                             ),
                           ],
-                        ),
-                        subtitle: Text(
-                          '${DateFormat('dd/MM HH:mm').format(tx.soldAt.toLocal())} · '
-                          '${tx.paymentMethod.toUpperCase()} · '
-                          '${tx.items.length} item'
-                          '${tx.syncError != null ? '\nError: ${tx.syncError}' : ''}',
-                          style: AppTypography.bodySm,
-                        ),
-                        trailing: Text(
-                          formatRupiah(tx.totalIdr),
-                          style: AppTypography.labelMd.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
                         ),
                       );
                     },
