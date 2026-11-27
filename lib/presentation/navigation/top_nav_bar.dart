@@ -13,7 +13,14 @@ import '../widgets/settings_modal.dart';
 import '../widgets/shift_modals.dart';
 
 class TopNavBar extends StatelessWidget {
-  const TopNavBar({super.key});
+  final int activeTabIndex;
+  final ValueChanged<int> onTabChanged;
+
+  const TopNavBar({
+    super.key,
+    this.activeTabIndex = 0,
+    required this.onTabChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +139,7 @@ class TopNavBar extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
 
-                  // Offline Queue Pill
+                  // Offline Queue Pill (tetap membuka modal antrean sinkronisasi SQLite)
                   FutureBuilder<int>(
                     future: AppDatabase.instance.getPendingTransactionCount(),
                     builder: (context, snapshot) {
@@ -172,38 +179,21 @@ class TopNavBar extends StatelessWidget {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Active POS Tab Indicator
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryContainer,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.point_of_sale_rounded,
-                      size: 18,
-                      color: AppColors.onPrimaryContainer,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Kasir POS',
-                      style: AppTypography.labelMd.copyWith(
-                        color: AppColors.onPrimaryContainer,
-                      ),
-                    ),
-                  ],
-                ),
+              // Tab Kasir POS
+              _NavTabButton(
+                icon: Icons.point_of_sale_rounded,
+                label: 'Kasir POS',
+                isActive: activeTabIndex == 0,
+                onTap: () => onTabChanged(0),
               ),
               const SizedBox(width: 6),
 
-              // Riwayat Transaksi / Sync
-              _NavGhostButton(
+              // Tab Riwayat Transaksi
+              _NavTabButton(
                 icon: Icons.receipt_long_rounded,
                 label: 'Riwayat',
-                onTap: () => showOfflineQueueModal(context),
+                isActive: activeTabIndex == 1,
+                onTap: () => onTabChanged(1),
               ),
               const SizedBox(width: 4),
 
@@ -404,6 +394,59 @@ class _StatusPill extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _NavTabButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _NavTabButton({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: isActive ? AppColors.primaryContainer : Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        hoverColor: isActive
+            ? AppColors.primaryContainer
+            : AppColors.surfaceContainerHigh,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 18,
+                color: isActive
+                    ? AppColors.onPrimaryContainer
+                    : AppColors.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: AppTypography.labelMd.copyWith(
+                  color: isActive
+                      ? AppColors.onPrimaryContainer
+                      : AppColors.onSurfaceVariant,
+                  fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

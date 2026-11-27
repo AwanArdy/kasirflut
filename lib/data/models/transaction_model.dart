@@ -16,12 +16,22 @@ class SaleItemSnapshot {
   });
 
   factory SaleItemSnapshot.fromJson(Map<String, dynamic> json) {
+    final qty = ((json['qty'] ?? json['quantity']) as num?)?.toInt() ?? 0;
+    final unitPrice =
+        ((json['unitPriceIdr'] ?? json['unit_price_idr'] ?? json['priceIdr'])
+                as num?)
+            ?.toInt() ??
+        0;
+    final lineTotal =
+        ((json['lineTotalIdr'] ?? json['line_total_idr']) as num?)?.toInt() ??
+            (qty * unitPrice);
+
     return SaleItemSnapshot(
-      productId: json['productId'] as String,
-      name: json['name'] as String? ?? '',
-      qty: (json['qty'] as num).toInt(),
-      unitPriceIdr: (json['unitPriceIdr'] as num).toInt(),
-      lineTotalIdr: (json['lineTotalIdr'] as num).toInt(),
+      productId: (json['productId'] ?? json['product_id'] ?? '').toString(),
+      name: (json['name'] ?? json['productName'] ?? '').toString(),
+      qty: qty,
+      unitPriceIdr: unitPrice,
+      lineTotalIdr: lineTotal,
     );
   }
 
@@ -116,28 +126,34 @@ class TransactionModel {
   }
 
   factory TransactionModel.fromMap(Map<String, dynamic> map) {
-    final decoded = jsonDecode(map['items_json'] as String) as List;
+    final rawItemsJson = map['items_json'] as String?;
+    final decoded = (rawItemsJson != null && rawItemsJson.isNotEmpty)
+        ? (jsonDecode(rawItemsJson) as List)
+        : const [];
+
     return TransactionModel(
-      id: map['id'] as String,
-      idempotencyKey: map['idempotency_key'] as String,
+      id: (map['id'] ?? '').toString(),
+      idempotencyKey: (map['idempotency_key'] ?? '').toString(),
       serverId: map['server_id'] as String?,
-      noNota: map['no_nota'] as String,
+      noNota: (map['no_nota'] ?? '').toString(),
       shiftId: map['shift_id'] as String?,
-      orderType: map['order_type'] as String,
-      paymentMethod: map['payment_method'] as String,
+      orderType: (map['order_type'] ?? 'dine_in').toString(),
+      paymentMethod: (map['payment_method'] ?? 'cash').toString(),
       customerName: map['customer_name'] as String?,
-      subtotalIdr: (map['subtotal_idr'] as num).toInt(),
-      discountIdr: (map['discount_idr'] as num? ?? 0).toInt(),
-      taxIdr: (map['tax_idr'] as num? ?? 0).toInt(),
-      totalIdr: (map['total_idr'] as num).toInt(),
-      amountReceivedIdr: (map['amount_received_idr'] as num? ?? 0).toInt(),
-      changeIdr: (map['change_idr'] as num? ?? 0).toInt(),
-      status: map['status'] as String? ?? 'paid',
+      subtotalIdr: (map['subtotal_idr'] as num?)?.toInt() ?? 0,
+      discountIdr: (map['discount_idr'] as num?)?.toInt() ?? 0,
+      taxIdr: (map['tax_idr'] as num?)?.toInt() ?? 0,
+      totalIdr: (map['total_idr'] as num?)?.toInt() ?? 0,
+      amountReceivedIdr: (map['amount_received_idr'] as num?)?.toInt() ?? 0,
+      changeIdr: (map['change_idr'] as num?)?.toInt() ?? 0,
+      status: (map['status'] ?? 'paid').toString(),
       items: decoded
           .map((e) => SaleItemSnapshot.fromJson(e as Map<String, dynamic>))
           .toList(),
-      soldAt: DateTime.parse(map['sold_at'] as String),
-      syncStatus: map['sync_status'] as String? ?? 'pending',
+      soldAt: map['sold_at'] != null
+          ? DateTime.parse(map['sold_at'] as String)
+          : DateTime.now(),
+      syncStatus: (map['sync_status'] ?? 'pending').toString(),
       syncError: map['sync_error'] as String?,
     );
   }

@@ -29,19 +29,27 @@ class ShiftCubit extends Cubit<ShiftState> {
 
   ShiftCubit({required this.repository}) : super(ShiftClosed());
 
-  Future<void> loadActiveShift() async {
-    emit(ShiftLoading());
+  Future<void> loadActiveShift({bool silent = false}) async {
+    final hadActiveShift = state is ShiftActive;
+    if (!silent && !hadActiveShift) {
+      emit(ShiftLoading());
+    }
+
     try {
       final active = await repository.getActiveShift();
       if (active != null && active.isOpen) {
         emit(ShiftActive(active));
-      } else {
+      } else if (!silent) {
         emit(ShiftClosed());
       }
     } on ApiException catch (e) {
-      emit(ShiftError(e.message));
+      if (!silent && !hadActiveShift) {
+        emit(ShiftError(e.message));
+      }
     } catch (_) {
-      emit(ShiftClosed());
+      if (!silent && !hadActiveShift) {
+        emit(ShiftClosed());
+      }
     }
   }
 

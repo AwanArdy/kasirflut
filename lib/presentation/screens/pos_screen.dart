@@ -16,6 +16,7 @@ import '../widgets/payment_modal.dart';
 import '../widgets/settings_modal.dart';
 import '../widgets/shift_modals.dart';
 import '../widgets/update_dialog.dart';
+import 'transaction_history_screen.dart';
 
 class PosScreen extends StatefulWidget {
   const PosScreen({super.key});
@@ -26,6 +27,7 @@ class PosScreen extends StatefulWidget {
 
 class _PosScreenState extends State<PosScreen> {
   bool _isUpdateDialogOpen = false;
+  int _activeTabIndex = 0; // 0 = Kasir POS, 1 = Riwayat Transaksi
 
   void _maybeShowUpdateDialog(UpdateState state) {
     if (_isUpdateDialogOpen) return;
@@ -77,7 +79,7 @@ class _PosScreenState extends State<PosScreen> {
                 backgroundColor: AppColors.primaryStrong,
               ),
             );
-            context.read<ShiftCubit>().loadActiveShift();
+            context.read<ShiftCubit>().loadActiveShift(silent: true);
           }
         },
       );
@@ -99,7 +101,7 @@ class _PosScreenState extends State<PosScreen> {
           listener: (context, state) async {
             if (state is CheckoutSuccess) {
               context.read<CartCubit>().clearCart();
-              context.read<ShiftCubit>().loadActiveShift();
+              context.read<ShiftCubit>().loadActiveShift(silent: true);
               await showReceiptModal(context, state.transaction);
               if (context.mounted) {
                 context.read<CheckoutCubit>().reset();
@@ -145,6 +147,12 @@ class _PosScreenState extends State<PosScreen> {
         body: SafeArea(
           child: BlocBuilder<ShiftCubit, ShiftState>(
             builder: (context, shiftState) {
+              if (shiftState is ShiftLoading) {
+                return const Center(
+                  child: CircularProgressIndicator(color: AppColors.primary),
+                );
+              }
+
               // Wajib punya shift aktif; jika belum terbuka tampilkan backdrop POS blur + modal buka shift
               if (shiftState is! ShiftActive) {
                 return const PosBlurredBackdrop(
@@ -152,16 +160,23 @@ class _PosScreenState extends State<PosScreen> {
                 );
               }
 
-              return const Column(
+              return Column(
                 children: [
-                  TopNavBar(),
+                  TopNavBar(
+                    activeTabIndex: _activeTabIndex,
+                    onTabChanged: (index) {
+                      setState(() => _activeTabIndex = index);
+                    },
+                  ),
                   Expanded(
-                    child: Row(
-                      children: [
-                        Expanded(child: MenuGridWidget()),
-                        OrderSidebarWidget(),
-                      ],
-                    ),
+                    child: _activeTabIndex == 1
+                        ? const TransactionHistoryScreen()
+                        : const Row(
+                            children: [
+                              Expanded(child: MenuGridWidget()),
+                              OrderSidebarWidget(),
+                            ],
+                          ),
                   ),
                 ],
               );

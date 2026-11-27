@@ -1,5 +1,10 @@
+import 'dart:io' show Platform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart';
 import 'core/constants/app_colors.dart';
 import 'core/network/api_client.dart';
 import 'core/sync/sync_service.dart';
@@ -13,9 +18,19 @@ import 'logic/checkout/checkout_cubit.dart';
 import 'logic/shift/shift_cubit.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/pos_screen.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (kIsWeb) {
+    databaseFactory = databaseFactoryFfiWeb;
+  } else if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
+
+  await initializeDateFormatting('id_ID', null);
 
   final apiClient = ApiClient();
   final posRepository = PosRepository(apiClient: apiClient);
@@ -27,7 +42,7 @@ void main() {
       apiClient: apiClient,
       posRepository: posRepository,
       syncService: syncService,
-      updateRepository: updateRepository
+      updateRepository: updateRepository,
     ),
   );
 }
