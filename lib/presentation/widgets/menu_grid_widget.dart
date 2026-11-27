@@ -4,6 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
 import '../../logic/cart/cart_cubit.dart';
 import '../../logic/catalog/catalog_cubit.dart';
+import 'offline_queue_modal.dart';
 import 'product_card_widget.dart';
 
 class MenuGridWidget extends StatefulWidget {
@@ -39,7 +40,13 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
               decoration: BoxDecoration(
                 color: AppColors.surface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.outlineVariant),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.onSurface.withValues(alpha: 0.05),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -60,8 +67,9 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
                   const SizedBox(height: 14),
                   Text(
                     state.message,
-                    style:
-                        AppTypography.bodyMd.copyWith(color: AppColors.errorStrong),
+                    style: AppTypography.bodyMd.copyWith(
+                      color: AppColors.errorStrong,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -89,38 +97,77 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
           final products = state.filteredProducts;
 
           return Padding(
-            padding: const EdgeInsets.fromLTRB(24, 20, 20, 20),
+            padding: const EdgeInsets.fromLTRB(20, 18, 16, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header & Search Input
+                // Header & Quick Search
                 Row(
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Katalog Menu', style: AppTypography.headlineMd),
-                        const SizedBox(height: 2),
-                        Text(
-                          '${products.length} produk tersedia',
-                          style: AppTypography.bodySm,
-                        ),
-                      ],
+                    Flexible(
+                      child: Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 10,
+                        runSpacing: 6,
+                        children: [
+                          Text(
+                            'Katalog Menu',
+                            style: AppTypography.headlineMd.copyWith(
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceContainerHigh,
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Text(
+                              '${products.length} Menu Tersedia',
+                              style: AppTypography.labelSm.copyWith(
+                                color: AppColors.onSurfaceVariant,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    const Spacer(),
-                    SizedBox(
-                      width: 300,
+                    const SizedBox(width: 16),
+                    Container(
+                      width: 310,
                       height: 46,
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.onSurface.withValues(alpha: 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
                       child: TextField(
                         controller: _searchController,
                         onChanged: (val) =>
                             context.read<CatalogCubit>().searchMenu(val),
+                        style: AppTypography.bodySm.copyWith(
+                          color: AppColors.onSurface,
+                        ),
                         decoration: InputDecoration(
-                          hintText: 'Cari nama menu atau SKU...',
-                          hintStyle: AppTypography.bodySm,
+                          hintText: 'Cari nama produk atau SKU...',
+                          hintStyle: AppTypography.bodySm.copyWith(
+                            color: AppColors.outline,
+                          ),
                           prefixIcon: const Icon(
                             Icons.search_rounded,
                             color: AppColors.outline,
+                            size: 20,
                           ),
                           suffixIcon: state.searchQuery.isNotEmpty
                               ? IconButton(
@@ -141,15 +188,11 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
                               const EdgeInsets.symmetric(vertical: 0),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: AppColors.outlineVariant,
-                            ),
+                            borderSide: BorderSide.none,
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
-                            borderSide: const BorderSide(
-                              color: AppColors.outlineVariant,
-                            ),
+                            borderSide: BorderSide.none,
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -163,11 +206,12 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
 
+                // Offline Banner with Quick Queue Action
                 if (state.isOfflineCache)
                   Container(
-                    margin: const EdgeInsets.only(bottom: 14),
+                    margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 10,
@@ -175,24 +219,51 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
                     decoration: BoxDecoration(
                       color: AppColors.warningBg,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: AppColors.warningText.withValues(alpha: 0.25),
-                      ),
                     ),
                     child: Row(
                       children: [
                         const Icon(
                           Icons.wifi_off_rounded,
-                          size: 18,
+                          size: 19,
                           color: AppColors.warningText,
                         ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(
-                            'Mode Offline: Menampilkan menu dari cache SQLite lokal.',
-                            style: AppTypography.labelSm.copyWith(
+                            'Mode Offline Aktif — Menampilkan katalog lokal SQLite & siap sinkron otomatis.',
+                            style: AppTypography.bodySm.copyWith(
                               color: AppColors.warningText,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        InkWell(
+                          onTap: () => showOfflineQueueModal(context),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.onSurface
+                                      .withValues(alpha: 0.05),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              'Cek Antrean',
+                              style: AppTypography.labelSm.copyWith(
+                                color: AppColors.warningText,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
                         ),
@@ -200,9 +271,9 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
                     ),
                   ),
 
-                // Horizontal Category Pills
+                // Horizontal Category Filter Pills
                 SizedBox(
-                  height: 42,
+                  height: 40,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: state.categories.length + 1,
@@ -211,8 +282,9 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
                       final isAll = index == 0;
                       final catId =
                           isAll ? 'ALL' : state.categories[index - 1].id;
-                      final catName =
-                          isAll ? 'All Menu' : state.categories[index - 1].name;
+                      final catName = isAll
+                          ? 'Semua Menu'
+                          : state.categories[index - 1].name;
                       final isSelected = state.selectedCategoryId == catId;
 
                       return Material(
@@ -225,40 +297,66 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 180),
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
+                              horizontal: 16,
                               vertical: 8,
                             ),
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppColors.primary
+                                  ? AppColors.secondaryFixedDim
                                   : AppColors.surface,
                               borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                color: isSelected
-                                    ? AppColors.primary
-                                    : AppColors.outlineVariant,
-                              ),
-                              boxShadow: isSelected
-                                  ? [
-                                      BoxShadow(
-                                        color: AppColors.primary
-                                            .withValues(alpha: 0.25),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ]
-                                  : null,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: isSelected
+                                      ? AppColors.primary
+                                          .withValues(alpha: 0.22)
+                                      : AppColors.onSurface
+                                          .withValues(alpha: 0.04),
+                                  blurRadius: isSelected ? 8 : 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                            child: Text(
-                              catName,
-                              style: AppTypography.labelMd.copyWith(
-                                fontSize: 13,
-                                letterSpacing: 0.2,
-                                color: isSelected
-                                    ? AppColors.onPrimary
-                                    : AppColors.onSurfaceVariant,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  catName,
+                                  style: AppTypography.labelMd.copyWith(
+                                    fontSize: 13,
+                                    letterSpacing: 0.1,
+                                    color: AppColors.onSurface,
+                                    fontWeight: isSelected
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                  ),
+                                ),
+                                if (isAll) ...[
+                                  const SizedBox(width: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isSelected
+                                          ? AppColors.surface
+                                              .withValues(alpha: 0.55)
+                                          : AppColors.surfaceContainerLow,
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      '${products.length}',
+                                      style: AppTypography.labelXs.copyWith(
+                                        color: isSelected
+                                            ? AppColors.onSurface
+                                            : AppColors.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                         ),
@@ -266,7 +364,7 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
                     },
                   ),
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 16),
 
                 // Responsive Grid Catalog Products
                 Expanded(
@@ -309,8 +407,10 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
                                         .read<CatalogCubit>()
                                         .filterByCategory('ALL');
                                   },
-                                  icon: const Icon(Icons.restart_alt_rounded,
-                                      size: 18),
+                                  icon: const Icon(
+                                    Icons.restart_alt_rounded,
+                                    size: 18,
+                                  ),
                                   label: const Text('Reset Filter'),
                                 ),
                               ],
@@ -320,7 +420,7 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
                       : LayoutBuilder(
                           builder: (context, constraints) {
                             final width = constraints.maxWidth;
-                            final crossAxisCount = width >= 860
+                            final crossAxisCount = width >= 880
                                 ? 4
                                 : width >= 540
                                     ? 3
@@ -333,7 +433,7 @@ class _MenuGridWidgetState extends State<MenuGridWidget> {
                                   gridDelegate:
                                       SliverGridDelegateWithFixedCrossAxisCount(
                                     crossAxisCount: crossAxisCount,
-                                    childAspectRatio: 0.78,
+                                    childAspectRatio: 0.86,
                                     crossAxisSpacing: 14,
                                     mainAxisSpacing: 14,
                                   ),

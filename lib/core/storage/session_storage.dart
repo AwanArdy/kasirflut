@@ -33,7 +33,7 @@ class SessionStorage {
   static const _kOutletId = 'outlet_id';
   static const _kOutletName = 'outlet_name';
 
-  static const String defaultBaseUrl = 'http://localhost:3000/api/v1';
+  static const String defaultBaseUrl = 'https://teratur-system-production.up.railway.app/api/v1';
 
   Future<String> getBaseUrl() async {
     final prefs = await SharedPreferences.getInstance();

@@ -39,14 +39,14 @@ class AppTypography {
     fontSize: 18,
     fontWeight: FontWeight.w400,
     height: 28 / 18,
-    color: AppColors.onSurface
+    color: AppColors.onSurface,
   );
 
   static TextStyle bodyMd = GoogleFonts.inter(
     fontSize: 16,
     fontWeight: FontWeight.w400,
     height: 24 / 16,
-    color: AppColors.onSurface
+    color: AppColors.onSurface,
   );
 
   static TextStyle bodySm = GoogleFonts.inter(
@@ -61,7 +61,7 @@ class AppTypography {
     fontSize: 14,
     fontWeight: FontWeight.w600,
     height: 20 / 14,
-    letterSpacing: 0.7,
+    letterSpacing: 0.2,
     color: AppColors.onSurface,
   );
 
@@ -69,6 +69,14 @@ class AppTypography {
     fontSize: 12,
     fontWeight: FontWeight.w500,
     height: 16 / 12,
+    color: AppColors.onSurfaceVariant,
+  );
+
+  static TextStyle labelXs = GoogleFonts.inter(
+    fontSize: 11,
+    fontWeight: FontWeight.w600,
+    height: 14 / 11,
+    letterSpacing: 0.2,
     color: AppColors.onSurfaceVariant,
   );
 }

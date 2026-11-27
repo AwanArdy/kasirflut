@@ -4,6 +4,8 @@ import 'core/constants/app_colors.dart';
 import 'core/network/api_client.dart';
 import 'core/sync/sync_service.dart';
 import 'data/repositories/pos_repository.dart';
+import 'data/repositories/update_repository.dart';
+import 'logic/update/update_cubit.dart';
 import 'logic/auth/auth_cubit.dart';
 import 'logic/cart/cart_cubit.dart';
 import 'logic/catalog/catalog_cubit.dart';
@@ -18,12 +20,14 @@ void main() {
   final apiClient = ApiClient();
   final posRepository = PosRepository(apiClient: apiClient);
   final syncService = SyncService(apiClient: apiClient);
+  final updateRepository = UpdateRepository();
 
   runApp(
     KasirFlutApp(
       apiClient: apiClient,
       posRepository: posRepository,
       syncService: syncService,
+      updateRepository: updateRepository
     ),
   );
 }
@@ -32,18 +36,24 @@ class KasirFlutApp extends StatelessWidget {
   final ApiClient apiClient;
   final PosRepository posRepository;
   final SyncService syncService;
+  final UpdateRepository updateRepository;
+
 
   const KasirFlutApp({
     super.key,
     required this.apiClient,
     required this.posRepository,
     required this.syncService,
+    required this.updateRepository,
   });
 
   @override
   Widget build(BuildContext context) {
-    return RepositoryProvider<SyncService>.value(
-      value: syncService,
+    return MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<SyncService>.value(value: syncService),
+        RepositoryProvider<UpdateRepository>.value(value: updateRepository),
+      ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AuthCubit>(
@@ -60,6 +70,10 @@ class KasirFlutApp extends StatelessWidget {
           ),
           BlocProvider<CheckoutCubit>(
             create: (_) => CheckoutCubit(repository: posRepository),
+          ),
+          BlocProvider<UpdateCubit>(
+            create: (_) => UpdateCubit(repository: updateRepository)
+            ..checkOnAppStart(),
           ),
         ],
         child: MaterialApp(

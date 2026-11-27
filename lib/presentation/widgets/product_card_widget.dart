@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_typography.dart';
@@ -19,25 +18,47 @@ class ProductCardWidget extends StatelessWidget {
     required this.onRemove,
   });
 
+  IconData _resolveCategoryIcon() {
+    final cat = '${product.category} ${product.categoryName}'.toLowerCase();
+    if (cat.contains('pastry') ||
+        cat.contains('roti') ||
+        cat.contains('cake') ||
+        cat.contains('bakery')) {
+      return Icons.bakery_dining_rounded;
+    }
+    if (cat.contains('makan') ||
+        cat.contains('food') ||
+        cat.contains('snack') ||
+        cat.contains('berat')) {
+      return Icons.lunch_dining_rounded;
+    }
+    if (cat.contains('tea') ||
+        cat.contains('teh') ||
+        cat.contains('non') ||
+        cat.contains('matcha') ||
+        cat.contains('juice')) {
+      return Icons.emoji_food_beverage_rounded;
+    }
+    return Icons.local_cafe_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isSnack = product.category.toLowerCase().contains('pastry') ||
-        product.category.toLowerCase().contains('snack');
     final isInCart = cartQty > 0;
+    final categoryIcon = _resolveCategoryIcon();
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isInCart ? AppColors.primary : AppColors.outlineVariant,
-          width: isInCart ? 1.8 : 1,
-        ),
+        border: isInCart
+            ? Border.all(color: AppColors.primary.withValues(alpha: 0.45), width: 1.5)
+            : null,
         boxShadow: [
           BoxShadow(
             color: isInCart
-                ? AppColors.primary.withValues(alpha: 0.12)
+                ? AppColors.primary.withValues(alpha: 0.16)
                 : AppColors.onSurface.withValues(alpha: 0.04),
             blurRadius: isInCart ? 14 : 8,
             offset: const Offset(0, 4),
@@ -46,117 +67,122 @@ class ProductCardWidget extends StatelessWidget {
       ),
       child: Material(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(16),
         child: InkWell(
           onTap: onAdd,
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Product Image + Badges
+              // Top Icon Canvas + Category & Qty Badges
               Expanded(
-                flex: 11,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(14),
-                      ),
-                      child: product.imageUrl != null
-                          ? CachedNetworkImage(
-                              imageUrl: product.imageUrl!,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => Container(
-                                color: AppColors.surfaceContainerLow,
-                              ),
-                              errorWidget: (context, url, error) => Container(
-                                color: AppColors.surfaceContainerLow,
-                                child: Center(
-                                  child: Icon(
-                                    isSnack
-                                        ? Icons.bakery_dining_rounded
-                                        : Icons.local_cafe_rounded,
-                                    size: 40,
-                                    color: AppColors.primary,
-                                  ),
-                                ),
-                              ),
-                            )
-                          : Container(
-                              color: AppColors.surfaceContainerLow,
-                              child: Center(
-                                child: Icon(
-                                  isSnack
-                                      ? Icons.bakery_dining_rounded
-                                      : Icons.local_cafe_rounded,
-                                  size: 42,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
+                flex: 10,
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: isInCart
+                        ? AppColors.surfaceContainer
+                        : AppColors.surfaceContainerLow,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(15),
                     ),
-                    // Category pill
-                    Positioned(
-                      left: 10,
-                      top: 10,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.surface.withValues(alpha: 0.92),
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          product.categoryName,
-                          style: AppTypography.labelSm.copyWith(
-                            fontSize: 11,
-                            color: AppColors.onSurfaceVariant,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Cart Quantity Badge
-                    if (isInCart)
-                      Positioned(
-                        right: 10,
-                        top: 10,
+                  ),
+                  child: Stack(
+                    children: [
+                      Center(
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 9,
-                            vertical: 4,
-                          ),
+                          width: 56,
+                          height: 56,
                           decoration: BoxDecoration(
-                            color: AppColors.primary,
-                            borderRadius: BorderRadius.circular(999),
+                            color: isInCart
+                                ? AppColors.primaryContainer
+                                : AppColors.surface,
+                            borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.onSurface
-                                    .withValues(alpha: 0.15),
-                                blurRadius: 6,
+                                color:
+                                    AppColors.onSurface.withValues(alpha: 0.04),
+                                blurRadius: 8,
                                 offset: const Offset(0, 2),
                               ),
                             ],
                           ),
+                          child: Icon(
+                            categoryIcon,
+                            size: 30,
+                            color: AppColors.primaryStrong,
+                          ),
+                        ),
+                      ),
+
+                      // Category Badge (Top-Left)
+                      Positioned(
+                        left: 10,
+                        top: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.surface.withValues(alpha: 0.92),
+                            borderRadius: BorderRadius.circular(6),
+                            boxShadow: [
+                              BoxShadow(
+                                color:
+                                    AppColors.onSurface.withValues(alpha: 0.04),
+                                blurRadius: 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
                           child: Text(
-                            '${cartQty}x',
-                            style: AppTypography.labelSm.copyWith(
-                              color: AppColors.onPrimary,
-                              fontWeight: FontWeight.w700,
+                            product.categoryName,
+                            style: AppTypography.labelXs.copyWith(
+                              color: AppColors.onSurface,
                             ),
                           ),
                         ),
                       ),
-                  ],
+
+                      // Circular Quantity Badge (Top-Right)
+                      if (isInCart)
+                        Positioned(
+                          right: 10,
+                          top: 10,
+                          child: Container(
+                            width: 26,
+                            height: 26,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.35),
+                                  blurRadius: 6,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              '$cartQty',
+                              style: AppTypography.labelXs.copyWith(
+                                color: AppColors.onPrimary,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
               ),
 
-              // Product Info & Action
+              // Product Info & Bottom Stepper
               Expanded(
-                flex: 10,
+                flex: 11,
                 child: Padding(
                   padding: const EdgeInsets.all(12),
                   child: Column(
@@ -166,9 +192,9 @@ class ProductCardWidget extends StatelessWidget {
                         product.name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: AppTypography.bodyMd.copyWith(
+                        style: AppTypography.bodySm.copyWith(
                           fontWeight: FontWeight.w700,
-                          fontSize: 15,
+                          color: AppColors.onSurface,
                           height: 1.25,
                         ),
                       ),
@@ -176,8 +202,8 @@ class ProductCardWidget extends StatelessWidget {
                       Text(
                         formatRupiah(product.price),
                         style: AppTypography.headlineSm.copyWith(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
                           color: AppColors.primaryStrong,
                         ),
                       ),
@@ -185,71 +211,76 @@ class ProductCardWidget extends StatelessWidget {
                       if (!isInCart)
                         SizedBox(
                           width: double.infinity,
-                          height: 36,
+                          height: 38,
                           child: ElevatedButton.icon(
                             onPressed: onAdd,
                             icon: const Icon(Icons.add_rounded, size: 18),
-                            label: const Text(
+                            label: Text(
                               'Tambah',
-                              style: TextStyle(fontWeight: FontWeight.w600),
+                              style: AppTypography.labelMd.copyWith(
+                                color: AppColors.onPrimaryContainer,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primaryContainer,
                               foregroundColor: AppColors.onPrimaryContainer,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                           ),
                         )
                       else
                         Container(
-                          height: 36,
+                          height: 38,
+                          padding: const EdgeInsets.all(3),
                           decoration: BoxDecoration(
                             color: AppColors.surfaceContainerLow,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color: AppColors.primary.withValues(alpha: 0.4),
-                            ),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              InkWell(
-                                onTap: onRemove,
+                              Material(
+                                color: AppColors.surface,
                                 borderRadius: BorderRadius.circular(9),
-                                child: const SizedBox(
-                                  width: 36,
-                                  height: 36,
-                                  child: Icon(
-                                    Icons.remove_rounded,
-                                    size: 18,
-                                    color: AppColors.primaryStrong,
+                                child: InkWell(
+                                  onTap: onRemove,
+                                  borderRadius: BorderRadius.circular(9),
+                                  child: const SizedBox(
+                                    width: 32,
+                                    height: 32,
+                                    child: Icon(
+                                      Icons.remove_rounded,
+                                      size: 18,
+                                      color: AppColors.onSurfaceVariant,
+                                    ),
                                   ),
                                 ),
                               ),
                               Text(
                                 '$cartQty',
-                                style: AppTypography.bodyMd.copyWith(
+                                style: AppTypography.labelMd.copyWith(
                                   fontWeight: FontWeight.w700,
                                   color: AppColors.onSurface,
                                 ),
                               ),
-                              InkWell(
-                                onTap: onAdd,
+                              Material(
+                                color: AppColors.primary,
                                 borderRadius: BorderRadius.circular(9),
-                                child: Container(
-                                  width: 36,
-                                  height: 36,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.primary,
-                                    borderRadius: BorderRadius.circular(9),
-                                  ),
-                                  child: const Icon(
-                                    Icons.add_rounded,
-                                    size: 18,
-                                    color: AppColors.onPrimary,
+                                child: InkWell(
+                                  onTap: onAdd,
+                                  borderRadius: BorderRadius.circular(9),
+                                  child: const SizedBox(
+                                    width: 32,
+                                    height: 32,
+                                    child: Icon(
+                                      Icons.add_rounded,
+                                      size: 18,
+                                      color: AppColors.onPrimary,
+                                    ),
                                   ),
                                 ),
                               ),

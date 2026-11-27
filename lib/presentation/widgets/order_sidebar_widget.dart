@@ -11,110 +11,94 @@ import 'shift_modals.dart';
 class OrderSidebarWidget extends StatelessWidget {
   const OrderSidebarWidget({super.key});
 
-  Future<void> _showOrderInfoDialog(
-      BuildContext context, CartState state) async {
+  Future<void> _showCustomerNameDialog(
+    BuildContext context,
+    CartState state,
+  ) async {
     final nameController = TextEditingController(text: state.customerName);
-    String orderType = state.orderType;
 
-    await showDialog(
+    await showDialog<void>(
       context: context,
       builder: (dialogCtx) {
-        return StatefulBuilder(
-          builder: (ctx, setState) {
-            return AlertDialog(
-              title: Row(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryContainer,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.person_outline_rounded,
-                      color: AppColors.primaryStrong,
-                      size: 20,
-                    ),
+        return AlertDialog(
+          title: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.table_restaurant_rounded,
+                  color: AppColors.primaryStrong,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text('Pelanggan / Nomor Meja'),
+            ],
+          ),
+          content: SizedBox(
+            width: 360,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Nama Pelanggan atau Nomor Meja',
+                  style: AppTypography.labelSm.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(width: 12),
-                  const Text('Info Pelanggan & Order'),
-                ],
-              ),
-              content: SizedBox(
-                width: 380,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Nama Pelanggan / Meja', style: AppTypography.labelSm),
-                    const SizedBox(height: 6),
-                    TextField(
-                      controller: nameController,
-                      decoration: const InputDecoration(
-                        hintText: 'Walk-in Customer / Meja 01',
-                        prefixIcon: Icon(Icons.badge_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 18),
-                    Text('Tipe Order', style: AppTypography.labelSm),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: SegmentedButton<String>(
-                        segments: const [
-                          ButtonSegment(
-                            value: 'dine_in',
-                            icon: Icon(Icons.restaurant_rounded, size: 16),
-                            label: Text('Dine In'),
-                          ),
-                          ButtonSegment(
-                            value: 'takeaway',
-                            icon: Icon(Icons.takeout_dining_rounded, size: 16),
-                            label: Text('Takeaway'),
-                          ),
-                          ButtonSegment(
-                            value: 'delivery',
-                            icon: Icon(Icons.delivery_dining_rounded, size: 16),
-                            label: Text('Delivery'),
-                          ),
-                        ],
-                        selected: {orderType},
-                        onSelectionChanged: (val) =>
-                            setState(() => orderType = val.first),
-                      ),
-                    ),
-                  ],
                 ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogCtx),
-                  child: const Text('Batal'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
+                const SizedBox(height: 6),
+                TextField(
+                  controller: nameController,
+                  autofocus: true,
+                  onSubmitted: (_) {
                     context.read<CartCubit>().updateOrderInfo(
                           customerName: nameController.text.trim().isEmpty
                               ? 'Walk-in Customer'
                               : nameController.text.trim(),
-                          orderType: orderType,
+                          orderType: state.orderType,
                         );
                     Navigator.pop(dialogCtx);
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.onPrimary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                  decoration: const InputDecoration(
+                    hintText: 'Contoh: Meja 04 / Budi',
+                    prefixIcon: Icon(Icons.badge_outlined),
                   ),
-                  child: const Text('Simpan'),
                 ),
               ],
-            );
-          },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                context.read<CartCubit>().updateOrderInfo(
+                      customerName: nameController.text.trim().isEmpty
+                          ? 'Walk-in Customer'
+                          : nameController.text.trim(),
+                      orderType: state.orderType,
+                    );
+                Navigator.pop(dialogCtx);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.onPrimary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Simpan'),
+            ),
+          ],
         );
       },
     );
@@ -123,68 +107,81 @@ class OrderSidebarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final sidebarWidth = screenWidth >= 1200 ? 410.0 : 370.0;
+    final sidebarWidth = screenWidth >= 1200 ? 410.0 : 380.0;
 
     return Container(
       width: sidebarWidth,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
-        border: Border(
-          left: BorderSide(color: AppColors.outlineVariant, width: 1),
-        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.onSurface.withValues(alpha: 0.05),
+            blurRadius: 20,
+            offset: const Offset(-4, 0),
+          ),
+        ],
       ),
       child: BlocBuilder<CartCubit, CartState>(
         builder: (context, state) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
+              // Order Sidebar Header
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 14),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
                 child: Row(
                   children: [
-                    Text('Order Detail', style: AppTypography.headlineSm),
+                    Text(
+                      'Order Detail',
+                      style: AppTypography.headlineSm.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 3),
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryContainer,
+                        color: AppColors.surfaceContainer,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
                         '${state.totalItemCount} Items',
-                        style: AppTypography.labelSm.copyWith(
-                          color: AppColors.onPrimaryContainer,
+                        style: AppTypography.labelXs.copyWith(
+                          color: AppColors.primaryStrong,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
                     const Spacer(),
                     if (state.items.isNotEmpty)
-                      TextButton.icon(
-                        onPressed: () =>
-                            context.read<CartCubit>().clearCart(),
-                        icon: const Icon(
-                          Icons.delete_outline_rounded,
-                          size: 16,
-                          color: AppColors.errorStrong,
-                        ),
-                        label: Text(
-                          'Clear All',
-                          style: AppTypography.labelSm.copyWith(
-                            color: AppColors.errorStrong,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: TextButton.styleFrom(
-                          backgroundColor: AppColors.dangerBg,
+                      InkWell(
+                        onTap: () => context.read<CartCubit>().clearCart(),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 6,
+                            horizontal: 8,
+                            vertical: 5,
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.delete_sweep_rounded,
+                                size: 16,
+                                color: AppColors.errorStrong,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Clear All',
+                                style: AppTypography.labelSm.copyWith(
+                                  color: AppColors.errorStrong,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -192,85 +189,109 @@ class OrderSidebarWidget extends StatelessWidget {
                 ),
               ),
 
-              // Customer & Order Type Selector Card
+              // Customer & Inline Dining Mode Selector
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Material(
-                  color: AppColors.surfaceContainerLow,
-                  borderRadius: BorderRadius.circular(14),
-                  child: InkWell(
-                    onTap: () => _showOrderInfoDialog(context, state),
-                    borderRadius: BorderRadius.circular(14),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: AppColors.outlineVariant),
-                      ),
-                      child: Row(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceContainerLow,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
                         children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryContainer,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.person_outline_rounded,
-                              size: 20,
-                              color: AppColors.primaryStrong,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  state.customerName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppTypography.labelMd.copyWith(
-                                    letterSpacing: 0.1,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.surface,
-                                    borderRadius: BorderRadius.circular(6),
-                                  ),
-                                  child: Text(
-                                    state.orderTypeLabel,
-                                    style: AppTypography.labelSm.copyWith(
-                                      fontSize: 11,
-                                      color: AppColors.primaryStrong,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                           const Icon(
-                            Icons.edit_outlined,
-                            size: 18,
-                            color: AppColors.primaryStrong,
+                            Icons.table_restaurant_rounded,
+                            size: 20,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              state.customerName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTypography.labelMd.copyWith(
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0,
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () =>
+                                _showCustomerNameDialog(context, state),
+                            borderRadius: BorderRadius.circular(8),
+                            child: const Padding(
+                              padding: EdgeInsets.all(4),
+                              child: Icon(
+                                Icons.edit_rounded,
+                                size: 18,
+                                color: AppColors.onSurfaceVariant,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                    ),
+                      const SizedBox(height: 10),
+
+                      // Inline 3-Tab Order Type Control
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceContainerHigh,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: _OrderTypeTab(
+                                icon: Icons.restaurant_rounded,
+                                label: 'Dine In',
+                                selected: state.orderType == 'dine_in',
+                                onTap: () =>
+                                    context.read<CartCubit>().updateOrderInfo(
+                                          customerName: state.customerName,
+                                          orderType: 'dine_in',
+                                        ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: _OrderTypeTab(
+                                icon: Icons.shopping_bag_rounded,
+                                label: 'Takeaway',
+                                selected: state.orderType == 'takeaway',
+                                onTap: () =>
+                                    context.read<CartCubit>().updateOrderInfo(
+                                          customerName: state.customerName,
+                                          orderType: 'takeaway',
+                                        ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: _OrderTypeTab(
+                                icon: Icons.moped_rounded,
+                                label: 'Delivery',
+                                selected: state.orderType == 'delivery',
+                                onTap: () =>
+                                    context.read<CartCubit>().updateOrderInfo(
+                                          customerName: state.customerName,
+                                          orderType: 'delivery',
+                                        ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(height: 14),
 
-              // Cart Item List
+              // Order Ticket Stream (Scrollable)
               Expanded(
                 child: state.items.isEmpty
                     ? Center(
@@ -280,15 +301,15 @@ class OrderSidebarWidget extends StatelessWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Container(
-                                width: 76,
-                                height: 76,
+                                width: 72,
+                                height: 72,
                                 decoration: const BoxDecoration(
                                   color: AppColors.surfaceContainerLow,
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
                                   Icons.shopping_bag_outlined,
-                                  size: 36,
+                                  size: 34,
                                   color: AppColors.outline,
                                 ),
                               ),
@@ -297,12 +318,11 @@ class OrderSidebarWidget extends StatelessWidget {
                                 'Keranjang masih kosong',
                                 style: AppTypography.headlineSm.copyWith(
                                   fontSize: 17,
-                                  color: AppColors.onSurface,
                                 ),
                               ),
                               const SizedBox(height: 6),
                               Text(
-                                'Pilih menu di sebelah kiri untuk menambahkan pesanan.',
+                                'Pilih menu di sebelah kiri untuk mulai mencatat pesanan.',
                                 textAlign: TextAlign.center,
                                 style: AppTypography.bodySm,
                               ),
@@ -311,7 +331,7 @@ class OrderSidebarWidget extends StatelessWidget {
                         ),
                       )
                     : ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(20, 2, 20, 12),
+                        padding: const EdgeInsets.fromLTRB(16, 2, 16, 12),
                         itemCount: state.items.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
@@ -321,110 +341,129 @@ class OrderSidebarWidget extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: AppColors.surfaceContainerLow,
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: AppColors.outlineVariant
-                                    .withValues(alpha: 0.6),
-                              ),
                             ),
-                            child: Row(
+                            child: Column(
                               children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        cartItem.product.name,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: AppTypography.bodyMd.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 14,
-                                        ),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            cartItem.product.name,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style:
+                                                AppTypography.bodySm.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                              color: AppColors.onSurface,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            '${formatRupiah(cartItem.product.price)} / item',
+                                            style: AppTypography.labelXs,
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        formatRupiah(cartItem.product.price),
-                                        style: AppTypography.labelSm,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                // Inline Stepper
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: AppColors.surface,
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: AppColors.outlineVariant,
                                     ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      InkWell(
-                                        onTap: () => context
-                                            .read<CartCubit>()
-                                            .removeFromCart(
-                                                cartItem.product.id),
-                                        borderRadius: BorderRadius.circular(7),
-                                        child: const SizedBox(
-                                          width: 28,
-                                          height: 28,
-                                          child: Icon(
-                                            Icons.remove_rounded,
-                                            size: 16,
-                                            color: AppColors.onSurfaceVariant,
-                                          ),
-                                        ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      formatRupiah(cartItem.subtotal),
+                                      style: AppTypography.labelMd.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0,
                                       ),
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                        ),
-                                        child: Text(
-                                          '${cartItem.quantity}',
-                                          style: AppTypography.labelMd.copyWith(
-                                            letterSpacing: 0,
-                                          ),
-                                        ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: 2,
                                       ),
-                                      InkWell(
-                                        onTap: () => context
-                                            .read<CartCubit>()
-                                            .addToCart(cartItem.product),
-                                        borderRadius: BorderRadius.circular(7),
-                                        child: Container(
-                                          width: 28,
-                                          height: 28,
-                                          decoration: BoxDecoration(
-                                            color: AppColors.primaryContainer,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.surface,
+                                        borderRadius: BorderRadius.circular(8),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.onSurface
+                                                .withValues(alpha: 0.04),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          InkWell(
+                                            onTap: () => context
+                                                .read<CartCubit>()
+                                                .removeFromCart(
+                                                    cartItem.product.id),
                                             borderRadius:
-                                                BorderRadius.circular(7),
+                                                BorderRadius.circular(6),
+                                            child: Container(
+                                              width: 26,
+                                              height: 26,
+                                              decoration: BoxDecoration(
+                                                color: AppColors
+                                                    .surfaceContainerLow,
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: const Icon(
+                                                Icons.remove_rounded,
+                                                size: 15,
+                                                color: AppColors.onSurface,
+                                              ),
+                                            ),
                                           ),
-                                          child: const Icon(
-                                            Icons.add_rounded,
-                                            size: 16,
-                                            color: AppColors.onPrimaryContainer,
+                                          SizedBox(
+                                            width: 28,
+                                            child: Text(
+                                              '${cartItem.quantity}',
+                                              textAlign: TextAlign.center,
+                                              style: AppTypography.labelSm
+                                                  .copyWith(
+                                                fontWeight: FontWeight.w700,
+                                                color: AppColors.onSurface,
+                                              ),
+                                            ),
                                           ),
-                                        ),
+                                          InkWell(
+                                            onTap: () => context
+                                                .read<CartCubit>()
+                                                .addToCart(cartItem.product),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                            child: Container(
+                                              width: 26,
+                                              height: 26,
+                                              decoration: BoxDecoration(
+                                                color: AppColors.primary,
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                              child: const Icon(
+                                                Icons.add_rounded,
+                                                size: 15,
+                                                color: AppColors.onPrimary,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                SizedBox(
-                                  width: 82,
-                                  child: Text(
-                                    formatRupiah(cartItem.subtotal),
-                                    textAlign: TextAlign.right,
-                                    style: AppTypography.labelMd.copyWith(
-                                      fontSize: 13,
-                                      letterSpacing: 0,
-                                      fontWeight: FontWeight.w700,
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -433,14 +472,18 @@ class OrderSidebarWidget extends StatelessWidget {
                       ),
               ),
 
-              // Summary & Checkout Footer
+              // Payment Summary & CTAs (Locked to bottom)
               Container(
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
                   color: AppColors.surface,
-                  border: Border(
-                    top: BorderSide(color: AppColors.outlineVariant, width: 1),
-                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.onSurface.withValues(alpha: 0.04),
+                      blurRadius: 16,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
@@ -450,14 +493,36 @@ class OrderSidebarWidget extends StatelessWidget {
                         Text('Subtotal', style: AppTypography.bodySm),
                         Text(
                           formatRupiah(state.subTotal),
-                          style: AppTypography.bodyMd.copyWith(
+                          style: AppTypography.bodySm.copyWith(
                             fontWeight: FontWeight.w600,
-                            fontSize: 15,
+                            color: AppColors.onSurface,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    if (state.discountAmount > 0) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Diskon Promo (${state.promoCode})',
+                            style: AppTypography.bodySm.copyWith(
+                              color: AppColors.primaryStrong,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            '-${formatRupiah(state.discountAmount)}',
+                            style: AppTypography.bodySm.copyWith(
+                              color: AppColors.primaryStrong,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 6),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -492,13 +557,12 @@ class OrderSidebarWidget extends StatelessWidget {
                                 const SizedBox(width: 6),
                                 Text(
                                   state.includeTax
-                                      ? 'PB1 / Pajak (10%)'
+                                      ? 'PB1 / Pajak Resto (10%)'
                                       : 'Tanpa Pajak (0%)',
-                                  style: AppTypography.labelSm.copyWith(
+                                  style: AppTypography.labelXs.copyWith(
                                     color: state.includeTax
                                         ? AppColors.onPrimaryContainer
                                         : AppColors.onSurfaceVariant,
-                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ],
@@ -507,54 +571,36 @@ class OrderSidebarWidget extends StatelessWidget {
                         ),
                         Text(
                           formatRupiah(state.taxAmount),
-                          style: AppTypography.bodyMd.copyWith(
+                          style: AppTypography.bodySm.copyWith(
                             fontWeight: FontWeight.w600,
-                            fontSize: 15,
+                            color: AppColors.onSurface,
                           ),
                         ),
                       ],
                     ),
-                    if (state.discountAmount > 0) ...[
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Diskon (${state.promoCode})',
-                            style: AppTypography.bodySm.copyWith(
-                              color: AppColors.errorStrong,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          Text(
-                            '-${formatRupiah(state.discountAmount)}',
-                            style: AppTypography.bodyMd.copyWith(
-                              color: AppColors.errorStrong,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 14),
-                      child: Divider(height: 1, color: AppColors.outlineVariant),
-                    ),
+                    const SizedBox(height: 12),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text('Total Amount', style: AppTypography.headlineSm),
+                        Text(
+                          'Total Bayar',
+                          style: AppTypography.headlineSm.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         Text(
                           formatRupiah(state.grandTotal),
                           style: AppTypography.headlineMd.copyWith(
                             color: AppColors.primaryStrong,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.3,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
                       height: 54,
@@ -587,12 +633,14 @@ class OrderSidebarWidget extends StatelessWidget {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.payments_rounded, size: 20),
-                            const SizedBox(width: 10),
+                            const Icon(Icons.payments_rounded, size: 22),
+                            const SizedBox(width: 8),
                             Text(
-                              'Payment Process',
+                              state.items.isNotEmpty
+                                  ? 'Bayar (${formatRupiah(state.grandTotal)})'
+                                  : 'Bayar',
                               style: AppTypography.labelMd.copyWith(
-                                fontSize: 16,
+                                fontSize: 15,
                                 letterSpacing: 0.2,
                                 color: state.items.isNotEmpty
                                     ? AppColors.onPrimary
@@ -610,6 +658,66 @@ class OrderSidebarWidget extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _OrderTypeTab extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _OrderTypeTab({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        height: 34,
+        decoration: BoxDecoration(
+          color: selected ? AppColors.surface : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: AppColors.onSurface.withValues(alpha: 0.06),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: selected
+                  ? AppColors.primaryStrong
+                  : AppColors.onSurfaceVariant,
+            ),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: AppTypography.labelXs.copyWith(
+                color: selected
+                    ? AppColors.primaryStrong
+                    : AppColors.onSurfaceVariant,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
